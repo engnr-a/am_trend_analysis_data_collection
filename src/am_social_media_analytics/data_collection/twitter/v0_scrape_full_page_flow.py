@@ -317,87 +317,43 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
                     ## STEP 5: Extract the post engagement data
                     # Initialize engagement counts
                     replies, reshares, likes, views, bookmarks = 0, 0, 0, 0, 0
+###################################################################################################################################################
+#############################################################################################################################################################
                     try:
-                        # Find all elements with aria-label
-                        engagement_elements = article.find_elements(By.XPATH, ".//div[@aria-label]")
+                        # Combine keywords into one XPath query
+                        keywords = ["reply", "reposts", "likes", "bookmarks", "views"]
+                        keyword_conditions = " or ".join([f"contains(translate(@aria-label, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{keyword}')" for keyword in keywords])
+                        xpath_query = f".//div[@aria-label and ({keyword_conditions})]"
+
+                        # Find elements with filtered XPath
+                        engagement_elements = article.find_elements(By.XPATH, xpath_query)
 
                         logger.info("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
                         logger.info(f"Total engagement elements: {len(engagement_elements)}")
                         logger.info("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
+                        
+                        if engagement_elements:
+                            aria_label = engagement_elements[0].get_attribute("aria-label")
+                            if aria_label:
+                                # Match and extract values
+                                reply_match = re.search(r"(\d+)\s*replies?", aria_label, re.IGNORECASE)
+                                reshare_match = re.search(r"(\d+)\s*(reposts?|shares?)", aria_label, re.IGNORECASE)
+                                like_match = re.search(r"(\d+)\s*likes?", aria_label, re.IGNORECASE)
+                                view_match = re.search(r"(\d+)\s*views?", aria_label, re.IGNORECASE)
+                                bookmark_match = re.search(r"(\d+)\s*bookmarks?", aria_label, re.IGNORECASE)
 
-                        # Initialize variable for engagement text
-                        engagement_text = None
-
-                        # Keywords to look for in aria-label
-                        keywords = ["reply", "reposts", "likes", "bookmarks", "views"]
-
-                        # Iterate through all found elements
-                        for element in engagement_elements:
-                            aria_label = element.get_attribute("aria-label")
-                            if aria_label and any(keyword in aria_label.lower() for keyword in keywords):
-                                engagement_text = aria_label
-                                break  # Stop once we find a matching element
-
-                        if not engagement_text:
-                            #raise Exception("No matching aria-label found containing engagement keywords.")
-                            logger.info(f"⚠️ No matching engagement aria-label found for tweet {tweet_unique_key}.")
-
-                        #logger.info(f"Extracted aria-label: {engagement_text}")  
-
-                        # Match and extract values
-                        reply_match = re.search(r"(\d+)\s*replies?", engagement_text, re.IGNORECASE)
-                        reshare_match = re.search(r"(\d+)\s*(reposts?|shares?)", engagement_text, re.IGNORECASE)
-                        like_match = re.search(r"(\d+)\s*likes?", engagement_text, re.IGNORECASE)
-                        view_match = re.search(r"(\d+)\s*views?", engagement_text, re.IGNORECASE)
-                        bookmark_match = re.search(r"(\d+)\s*bookmarks?", engagement_text, re.IGNORECASE)
-
-                        # Assign values if matches are found
-                        replies = int(reply_match.group(1)) if reply_match else 0
-                        reshares = int(reshare_match.group(1)) if reshare_match else 0
-                        likes = int(like_match.group(1)) if like_match else 0
-                        views = int(view_match.group(1)) if view_match else 0
-                        bookmarks = int(bookmark_match.group(1)) if bookmark_match else 0
+                                # Assign engagement values
+                                replies = int(reply_match.group(1)) if reply_match else 0
+                                reshares = int(reshare_match.group(1)) if reshare_match else 0
+                                likes = int(like_match.group(1)) if like_match else 0
+                                views = int(view_match.group(1)) if view_match else 0
+                                bookmarks = int(bookmark_match.group(1)) if bookmark_match else 0
+                        else:
+                            logger.info("❌ No engagement elements found.")
 
                     except Exception as e:
                         logger.warning(f"❌ Error extracting engagement data: {e}")
-############################################################################################################################################################
-                    # try:
-                    #     time.sleep(5)
-
-                    #     # Combine keywords into one XPath query
-                    #     keywords = ["reply", "reposts", "likes", "bookmarks", "views"]
-                    #     keyword_conditions = " or ".join([f"contains(translate(@aria-label, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{keyword}')" for keyword in keywords])
-                    #     xpath_query = f".//div[@aria-label and ({keyword_conditions})]"
-
-                    #     # Find elements with filtered XPath
-                    #     engagement_elements = article.find_elements(By.XPATH, xpath_query)
-
-                    #     logger.info("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
-                    #     logger.info(f"Total engagement elements: {len(engagement_elements)}")
-                    #     logger.info("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
-
-                    #     # Initialize engagement values
-                    #     replies, reshares, likes, views, bookmarks = 0, 0, 0, 0, 0
-
-                    #     for element in engagement_elements:
-                    #         aria_label = element.get_attribute("aria-label")
-                    #         if aria_label:
-                    #             # Match and extract values
-                    #             reply_match = re.search(r"(\d+)\s*replies?", aria_label, re.IGNORECASE)
-                    #             reshare_match = re.search(r"(\d+)\s*(reposts?|shares?)", aria_label, re.IGNORECASE)
-                    #             like_match = re.search(r"(\d+)\s*likes?", aria_label, re.IGNORECASE)
-                    #             view_match = re.search(r"(\d+)\s*views?", aria_label, re.IGNORECASE)
-                    #             bookmark_match = re.search(r"(\d+)\s*bookmarks?", aria_label, re.IGNORECASE)
-
-                    #             # Accumulate engagement values
-                    #             replies += int(reply_match.group(1)) if reply_match else 0
-                    #             reshares += int(reshare_match.group(1)) if reshare_match else 0
-                    #             likes += int(like_match.group(1)) if like_match else 0
-                    #             views += int(view_match.group(1)) if view_match else 0
-                    #             bookmarks += int(bookmark_match.group(1)) if bookmark_match else 0
-
-                    # except Exception as e:
-                    #     logger.warning(f"❌ Error extracting engagement data: {e}")
+#############################################################################################################################################################
 
 ############################################################################################################################################################
 

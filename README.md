@@ -100,4 +100,5 @@ browser.quit()
 #### General Useful Commands
 - Start chrome in debug mode
 `google-chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-profile`
+`google-chrome --remote-debugging-port=9222 --user-data-dir=/home/shola/chrome-profile`
 - `google-chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-profile --disable-gpu`
