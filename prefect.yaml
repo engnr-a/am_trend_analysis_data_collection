@@ -1,0 +1,93 @@
+# Welcome to your prefect.yaml file! You can use this file for storing and managing
+# configuration for deploying your flows. We recommend committing this file to source
+# control along with your flow code.
+
+# Generic metadata about this project
+name: am_social_media_analytics
+prefect-version: 3.1.9
+
+# build section allows you to manage and build docker images
+build: null
+
+# push section allows you to manage if and how this project is uploaded to remote locations
+push: null
+
+pull:
+- prefect.deployments.steps.set_working_directory:
+    directory: /home/shola/am_social_media_analytics/
+
+# pull section allows you to provide instructions for cloning this project in remote locations
+# pull:
+# - prefect.deployments.steps.git_clone:
+#     repository: https://github.com/engnr-a/am_social_media_analytics
+#     branch: main
+#     access_token: '{{ prefect.blocks.secret.deployment-test-linked-selenium-flow-repo-token
+#       }}'
+# - prefect.deployments.steps.set_working_directory:
+#     directory: "/home/shola/repositories/"
+
+# the deployments section allows you to provide configuration for deploying flows
+deployments:
+- name: log_in_flow
+  version: null
+  tags: []
+  concurrency_limit: null
+  description: Flow to perform signin in to twitter or linkedin
+  #entrypoint: src.am_social_media_analytics.login_flow:perform_login_flow
+  entrypoint: src.am_social_media_analytics.data_collection.common_utils.login_flow:perform_login_flow
+  parameters: 
+    website: "https://www.linkedin.com/login" 
+  work_pool:
+    name: mypc
+    work_queue_name: null
+    job_variables: {}
+  enforce_parameter_schema: true
+  schedules:
+  - interval: 36000.0
+    anchor_date: '2024-12-22T07:06:42.026647+00:00'
+    timezone: UTC
+    active: true
+- name: get_earliest_date
+  version: null
+  tags: [get_earliest_date]
+  concurrency_limit: null
+  description: Flow to read the already collected data and obtain the earliest tweet date for a specific month
+  #entrypoint: src.am_social_media_analytics.login_flow:perform_login_flow
+  entrypoint: src.am_social_media_analytics.data_collection.common_utils.data_query_utils_flow:extract_date_flow
+  parameters: 
+    data_folder: "data/keyphrase_search_results_raw/by_date/03_2024" 
+  work_pool:
+    name: mypc
+    work_queue_name: null
+    job_variables: {}
+  enforce_parameter_schema: true
+  schedules:
+  - interval: 36000.0
+    anchor_date: '2024-12-22T07:06:42.026647+00:00'
+    timezone: UTC
+    active: true
+# mothership
+- name: get_tweets_by_query
+  version: null
+  tags: [tweets_by_dated_search_query]
+  concurrency_limit: null
+  description: Flow to scrape tweets by a search query that contained automatically generated dates based on previous scarpping
+  entrypoint: src.am_social_media_analytics.data_collection.twitter.v0_scrape_full_page_flow:article_extraction_flow
+  parameters: 
+    url: "https://x.com/"
+    data_folder: "data/keyphrase_search_results_raw/by_date"
+    days_back: 10
+    max_run_time: 2
+  work_pool:
+    name: mypc
+    work_queue_name: null
+    job_variables: {}
+  enforce_parameter_schema: true
+  schedules:
+  - interval: 10800.0  # Every 3 hours (in seconds)
+    anchor_date: '2025-01-01T00:00:00+00:00'  # Start at midnight today
+    timezone: UTC
+    active: true
+  # pull:
+  #     - prefect.deployments.steps.set_working_directory:
+  #         directory: /home/shola/repositories/
