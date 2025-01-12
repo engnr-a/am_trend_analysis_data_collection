@@ -328,15 +328,13 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
                         # Find elements with filtered XPath
                         engagement_elements = article.find_elements(By.XPATH, xpath_query)
 
-                        logger.info("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
-                        logger.info(f"Total engagement elements: {len(engagement_elements)}")
-                        logger.info("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
-                        
+                        logger.info(f"🔢 Total engagement elements: {len(engagement_elements)}")
                         if engagement_elements:
                             aria_label = engagement_elements[0].get_attribute("aria-label")
                             if aria_label:
                                 # Match and extract values
-                                reply_match = re.search(r"(\d+)\s*replies?", aria_label, re.IGNORECASE)
+                                #reply_match = re.search(r"(\d+)\s*replies?", aria_label, re.IGNORECASE)
+                                reply_match = re.search(r"(\d+)\s*(reply|replies)", aria_label, re.IGNORECASE)
                                 reshare_match = re.search(r"(\d+)\s*(reposts?|shares?)", aria_label, re.IGNORECASE)
                                 like_match = re.search(r"(\d+)\s*likes?", aria_label, re.IGNORECASE)
                                 view_match = re.search(r"(\d+)\s*views?", aria_label, re.IGNORECASE)
@@ -377,7 +375,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
                 if tweet_unique_key not in all_unique_keys:
                     logger.info(f"✅ Tweet with unique key:{tweet_unique_key} added to set.")
                     logger.info(
-                        f"🆔 Current tweet engagements: Replies: {replies}, Reshares: {reshares}, Likes: {likes}, Views: {views}"
+                        f"🆔 Tweet engagements: Replies: {replies}, Reshares: {reshares}, Likes: {likes}, Views: {views}"
                     )
                     all_unique_keys.add(tweet_unique_key)  # Add to the global set
                     new_unique_keys.add(tweet_unique_key)  # Add to the new keys set
