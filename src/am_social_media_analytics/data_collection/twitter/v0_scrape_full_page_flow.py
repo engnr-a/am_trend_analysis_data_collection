@@ -54,9 +54,6 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
     # initialize the browser..NOTE: that this returns an instance of driver
     browser = initialize_browser_with_existing_session()
 
-    # set browser to 80%
-    # set_browser_zoom(browser, 80)
-
     # Infer data output folder and base folder..to ensure generality
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_output_folder = os.path.join(
@@ -110,7 +107,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
         ###################################################################################################################
         try:
             # Wait and find the search input field
-            time.sleep(20)
+            time.sleep(15)
             search_input = browser.find_element(
                 By.CSS_SELECTOR, '[placeholder="Search"]'
             )
@@ -121,7 +118,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
             search_input.send_keys(search_query)
             logger.info(f"✅ Entered search query: {search_query}")
 
-            time.sleep(5)
+            time.sleep(10)
             # Press Enter to send the search query
             search_input.send_keys(Keys.RETURN)
             logger.info("✅ Search query submitted by pressing Enter.")
@@ -140,10 +137,6 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
             logger.error(f"❌ Error clicking on the 'Latest' option: {e}")
         time.sleep(10)
         ##############################################################################################################
-
-        ###################
-        # set_browser_zoom(browser, 25)
-        ###################
 
         ############# [TRACKING AND CONTIUOUS VARIABLES]  ###################################################
         articles_set = set()
@@ -328,8 +321,8 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
                         # Find elements with filtered XPath
                         engagement_elements = article.find_elements(By.XPATH, xpath_query)
 
-                        logger.info(f"🔢 Total engagement elements: {len(engagement_elements)}")
                         if engagement_elements:
+                            logger.info(f"🔢 Total engagement elements: {len(engagement_elements)}")
                             aria_label = engagement_elements[0].get_attribute("aria-label")
                             if aria_label:
                                 # Match and extract values
@@ -402,9 +395,10 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
                         #update_search_query_and_send_email(browser, tweet_unique_key)
                         problematic_tweet_keys.append(tweet_unique_key)
                         
-            # if problematic_tweet_keys:
-            #     update_search_query_and_send_email(browser, problematic_tweet_keys[0])
-            #     unique_key_counter.clear()  # Reset the counter
+            if problematic_tweet_keys:
+                update_search_query_and_send_email(browser, problematic_tweet_keys[0])
+                problematic_tweet_keys.clear()
+                #unique_key_counter.clear()  
 
             ######
             #  # STEP 8: Check that we already have enough data for the batch, and writeout if we do.
@@ -463,14 +457,14 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
                 articles_set.clear()
                 # clear the new_unique_keys
                 new_unique_keys.clear()
-                logger.info("Sleeping for 30 seconds after writing")
+                logger.info("Sleeping for 20 seconds after writing")
                 
-                time.sleep(30)
+                time.sleep(20)
             #####
 
             ## STEP 9: Pause for a while and scroll down to reveal more posts/tweets
             # Random pause to mimic human behavior
-            pause_time = random.uniform(40, 60)
+            pause_time = random.uniform(30, 40)
             logger.info(f"⏸  Pausing for {pause_time:.2f} seconds...")
             time.sleep(pause_time)
 
@@ -481,6 +475,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
             # # Scroll down incrementally
             browser.execute_script("window.scrollBy(0, document.body.scrollHeight);")
             scroll_count += 1
+            time.sleep(15)
         ###################################################################################################
         ###################################################################################################
 

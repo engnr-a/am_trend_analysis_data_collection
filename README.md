@@ -102,3 +102,5 @@ browser.quit()
 `google-chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-profile`
 `google-chrome --remote-debugging-port=9222 --user-data-dir=/home/shola/chrome-profile`
 - `google-chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-profile --disable-gpu`
+
+`google-chrome --remote-debugging-port=9222 --user-data-dir=/home/shola/chrome-profile --disable-gpu 2>/dev/null`
