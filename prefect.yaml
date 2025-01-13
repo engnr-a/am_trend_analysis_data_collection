@@ -78,6 +78,31 @@ deployments:
     data_folder: "data/keyphrase_search_results_raw/by_date"
     days_back: 10
     max_run_time: 2
+    browser_port: 9222
+  work_pool:
+    name: mypc
+    work_queue_name: null
+    job_variables: {}
+  enforce_parameter_schema: true
+  schedules:
+  - interval: 10800.0 
+    anchor_date: '2025-01-01T00:00:00+00:00'  
+    timezone: UTC
+    active: false
+
+
+- name: tweets_by_query_v2
+  version: null
+  tags: [tweets_by_dated_search_query_v2]
+  concurrency_limit: null
+  description: Flow to scrape tweets by a search query that contained automatically generated dates based on previous scarpping
+  entrypoint: src.am_social_media_analytics.data_collection.twitter.v0_scrape_full_page_flow:article_extraction_flow
+  parameters: 
+    url: "https://x.com/"
+    data_folder: "data/keyphrase_search_results_raw/by_date/part2"
+    days_back: 10
+    max_run_time: 2
+    browser_port: 8222
   work_pool:
     name: mypc
     work_queue_name: null
@@ -87,7 +112,7 @@ deployments:
   - interval: 10800.0  # Every 3 hours (in seconds)
     anchor_date: '2025-01-01T00:00:00+00:00'  # Start at midnight today
     timezone: UTC
-    active: true
+    active: false
   # pull:
   #     - prefect.deployments.steps.set_working_directory:
   #         directory: /home/shola/repositories/

@@ -16,22 +16,9 @@ from prefect.variables import Variable
 from prefect.logging import get_run_logger
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-# chrome options
-# chrome_options = Options()
-# chrome_options.add_argument("user-agent=Mozi
-# lla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0")
-# chrome_options.add_argument("--no-sandbox")
-# chrome_options.add_argument("--disable-dev-shm-usage")
-# chrome_options.add_argument("start-maximized")
-
-# web driver initialization
-# service = Service(ChromeDriverManager().install())
-# browser = webdriver.Chrome(service=service, options=chrome_options)
-
 from selenium.webdriver.chrome.webdriver import WebDriver   
 
-def initialize_browser_with_existing_session() -> WebDriver:
+def initialize_browser_with_existing_session(port: int) -> WebDriver:
     """
     Initializes a WebDriver instance that connects to an existing Chrome session.
     """
@@ -40,16 +27,10 @@ def initialize_browser_with_existing_session() -> WebDriver:
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--start-maximized")
-    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222") 
-    chrome_options.add_argument("--remote-debugging-port=9222")
-    
-     # Add settings to disable video rendering
-    # chrome_prefs = {
-    #     "profile.managed_default_content_settings.media_stream": 2,  # Block media streams
-    #     "profile.managed_default_content_settings.images": 2,        # Optionally block images to speed up
-    #     "profile.default_content_setting_values.plugins": 2,         # Disable plugins like Flash
-    # }
-    # chrome_options.add_experimental_option("prefs", chrome_prefs)
+    # chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222") 
+    # chrome_options.add_argument("--remote-debugging-port=9222")
+    chrome_options.add_experimental_option("debuggerAddress", f"127.0.0.1:{port}")
+    chrome_options.add_argument(f"--remote-debugging-port={port}")
     
     print(ChromeDriverManager().install())
     # Initialize WebDriver using the existing session
@@ -58,7 +39,7 @@ def initialize_browser_with_existing_session() -> WebDriver:
 
 
 @task
-def is_session_authenticated(url: str) -> bool:
+def is_session_authenticated(url: str, port:int) -> bool:
     """
     Checks if there's already an open browser tab where the user is authenticated 
     for the given platform.
@@ -74,7 +55,7 @@ def is_session_authenticated(url: str) -> bool:
         logger.info(f"🔍 Checking for existing authenticated session on: {url}...") 
         try:
             # Connect to the existing browser session
-            browser = initialize_browser_with_existing_session()
+            browser = initialize_browser_with_existing_session(port)
             
             # Get all open tabs/windows
             open_tabs = browser.window_handles
@@ -133,19 +114,19 @@ def is_session_authenticated(url: str) -> bool:
 
 
 @task
-def perform_login_task(url: str):
+def perform_login_task(url: str, port:int):
     """
     Opens the specified website and simulates a login if required.
     """
     try:
         logger = get_run_logger()
 
-        if is_session_authenticated(url):
+        if is_session_authenticated(url, port):
             logger.info(f"✅ Found an authenticated session for {url}. Skipping login.")
             return
         
         logger.info(f"⚠️ No authenticated session found. Opening website: {url}...") 
-        browser = initialize_browser_with_existing_session()
+        browser = initialize_browser_with_existing_session(port)
         
         # Open a new tab
         browser.execute_script("window.open('');")

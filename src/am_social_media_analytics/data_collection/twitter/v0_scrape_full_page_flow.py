@@ -34,7 +34,7 @@ from am_social_media_analytics.data_collection.common_utils.general_utils import
 
 
 @task
-def extract_articles_from_page(url: str, search_query: str, max_hours: int):
+def extract_articles_from_page(url: str, search_query: str, max_hours: int, port:int):
     """
     Extracts <article> elements from a webpage, scrolling incrementally and storing
     unique content in a set. Outputs the results to a CSV file when at least 20
@@ -52,7 +52,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
     start_time, end_time, hours, minutes = calculate_scraping_time(max_hours)
 
     # initialize the browser..NOTE: that this returns an instance of driver
-    browser = initialize_browser_with_existing_session()
+    browser = initialize_browser_with_existing_session(port)
 
     # Infer data output folder and base folder..to ensure generality
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -80,10 +80,10 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
         ##########################################################################################################################
         if "linkedin.com" in url:
             logger.info("🔗 Detected LinkedIn. Proceeding with login...")
-            perform_login_task("https://www.linkedin.com/login")
+            perform_login_task("https://www.linkedin.com/login", port)
         elif "x.com" in url or "twitter.com" in url:
             logger.info("🔗 Detected Twitter (X.com). Proceeding with login...")
-            perform_login_task("https://x.com/i/flow/login")
+            perform_login_task("https://x.com/i/flow/login", port)
         else:
             logger.error(f"❌ Unsupported platform: {url}")
             return
@@ -532,18 +532,18 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int):
 
 @flow
 def article_extraction_flow(
-    url: str, data_folder: str, days_back: int, max_run_time: int
+    url: str, data_folder: str, days_back: int, max_run_time: int, browser_port:int
 ):
     """
     Flow to extract articles from a webpage after login.
     """
+    logger = get_run_logger()
     # data_folder = "data/keyphrase_search_results_raw/by_date/03_2024"
     # days_back = 10
     # in the form  "additive manufacturing" or "3d printer" or "3d printed" or "3d printing" or "3d print" until:2024-03-04 since:2024-02-23 -filter:replies
     search_query = create_query_string(data_folder, days_back)
 
     # Send email for flow start
-
     context = FlowRunContext.get()
     # Access flow name and parameters from the context
     flow_name = context.flow.name
@@ -557,8 +557,9 @@ def article_extraction_flow(
         parameters,
         {"tweet_search_query": search_query},
     )
-    extract_articles_from_page(url, search_query, max_run_time)
-    # Call the email task
+    logger.info(f"🚅 Browser will be connected to at the port {browser_port}")
+    extract_articles_from_page(url, search_query, max_run_time, browser_port)
+    # Send email for flow end
     send_flow_info_by_email(
         "ended",
         to_email_addresses,
@@ -573,4 +574,4 @@ if __name__ == "__main__":
     days_back = 10
     website_url = "https://x.com/"
     max_run_time = 3
-    article_extraction_flow(website_url, data_folder, days_back, max_run_time)
+    article_extraction_flow(website_url, data_folder, days_back, max_run_time, 9222)
