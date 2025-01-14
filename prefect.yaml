@@ -28,46 +28,8 @@ pull:
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
-- name: log_in_flow
-  version: null
-  tags: []
-  concurrency_limit: null
-  description: Flow to perform signin in to twitter or linkedin
-  #entrypoint: src.am_social_media_analytics.login_flow:perform_login_flow
-  entrypoint: src.am_social_media_analytics.data_collection.common_utils.login_flow:perform_login_flow
-  parameters: 
-    website: "https://www.linkedin.com/login" 
-  work_pool:
-    name: mypc
-    work_queue_name: null
-    job_variables: {}
-  enforce_parameter_schema: true
-  schedules:
-  - interval: 36000.0
-    anchor_date: '2024-12-22T07:06:42.026647+00:00'
-    timezone: UTC
-    active: true
-- name: get_earliest_date
-  version: null
-  tags: [get_earliest_date]
-  concurrency_limit: null
-  description: Flow to read the already collected data and obtain the earliest tweet date for a specific month
-  #entrypoint: src.am_social_media_analytics.login_flow:perform_login_flow
-  entrypoint: src.am_social_media_analytics.data_collection.common_utils.data_query_utils_flow:extract_date_flow
-  parameters: 
-    data_folder: "data/keyphrase_search_results_raw/by_date/03_2024" 
-  work_pool:
-    name: mypc
-    work_queue_name: null
-    job_variables: {}
-  enforce_parameter_schema: true
-  schedules:
-  - interval: 36000.0
-    anchor_date: '2024-12-22T07:06:42.026647+00:00'
-    timezone: UTC
-    active: true
-# mothership
-- name: get_tweets_by_query
+
+- name: get_tweets_n1
   version: null
   tags: [tweets_by_dated_search_query]
   concurrency_limit: null
@@ -91,15 +53,39 @@ deployments:
     active: false
 
 
-- name: tweets_by_query_v2
+- name: get_tweets_node1
   version: null
-  tags: [tweets_by_dated_search_query_v2]
+  tags: [tweets_by_search_query_n1]
   concurrency_limit: null
   description: Flow to scrape tweets by a search query that contained automatically generated dates based on previous scarpping
   entrypoint: src.am_social_media_analytics.data_collection.twitter.v0_scrape_full_page_flow:article_extraction_flow
   parameters: 
     url: "https://x.com/"
-    data_folder: "data/keyphrase_search_results_raw/by_date/part2"
+    data_folder: "data/keyphrase_search_results_raw/by_date/node1/2022"
+    days_back: 10
+    max_run_time: 2
+    browser_port: 8222
+    node_id: ""
+  work_pool:
+    name: mypc
+    work_queue_name: null
+    job_variables: {}
+  enforce_parameter_schema: true
+  schedules:
+  - interval: 10800.0  # 
+    anchor_date: '2025-01-01T00:00:00+00:00' 
+    timezone: UTC
+    active: false
+
+- name: get_tweets_node2
+  version: null
+  tags: [tweets_by_search_query_n2]
+  concurrency_limit: null
+  description: Flow to scrape tweets by a search query that contained automatically generated dates based on previous scarpping
+  entrypoint: src.am_social_media_analytics.data_collection.twitter.v0_scrape_full_page_flow:article_extraction_flow
+  parameters: 
+    url: "https://x.com/"
+    data_folder: "data/keyphrase_search_results_raw/by_date/node2"
     days_back: 10
     max_run_time: 2
     browser_port: 8222
@@ -109,10 +95,7 @@ deployments:
     job_variables: {}
   enforce_parameter_schema: true
   schedules:
-  - interval: 10800.0  # Every 3 hours (in seconds)
-    anchor_date: '2025-01-01T00:00:00+00:00'  # Start at midnight today
+  - interval: 10800.0  # 
+    anchor_date: '2025-01-01T00:00:00+00:00' 
     timezone: UTC
     active: false
-  # pull:
-  #     - prefect.deployments.steps.set_working_directory:
-  #         directory: /home/shola/repositories/

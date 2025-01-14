@@ -21,12 +21,23 @@ def send_flow_info_by_email(email_type, to_email_addresses, flow_name, parameter
             action = "has ended"
         else:
             action
+            
+        node_emojis = {
+            "node1": "1️⃣",
+            "node2": "2️⃣",
+            "node3": "3️⃣",
+            # Add more nodes as needed
+        }
         
-        title_template = "[PART 2] Work Flow: {flow_name} {action}"
+        emoji = node_emojis.get(node_id.lower(), "❓")  # Default emoji if node_id not in the dictionary
         
+        #title_template = f"{node_id} Work Flow: {{flow_name}} {{action}}"
+        
+        title_template = f"{emoji} {node_id.upper()} Work Flow: {{flow_name}} {{action}}"
+
         message = (
             f"<p>Hello,</p>"
-            f"<p>This email is sent from the [PART 2] work flow named <b>'{flow_name}'</b>. The workflow has <b>{action}.</b></p>"
+            f"<p>This email is sent from the {emoji} {node_id.upper()} work flow named <b>'{flow_name}'</b>. "
             f"<p><b>Execution Start Time</b>: {current_time}</p>"
             f"<p><b>Parameters</b> passed to the flow:</p>"
             f"<ul>{''.join([f'<li><b>{key}</b>: {value}</li>' for key, value in parameters])}</ul>"

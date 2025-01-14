@@ -145,6 +145,62 @@ def update_search_query_and_send_email(driver: webdriver, tweet_key: str):
 
 
 
+def load_unique_keys(data_output_folder):
+    """
+    Load unique keys from a CSV file named with the pattern `<node_id>_unique_keys.csv`.
+
+    The `node_id` is automatically extracted from the `data_output_folder` path.
+
+    Args:
+        data_output_folder (str): Path to the data output folder.
+
+    Returns:
+        set: A set of unique keys loaded from the file.
+
+    Raises:
+        FileNotFoundError: If the file is not found.
+    """
+    logger = logging.getLogger(__name__)
+    logger.info("Starting to load unique keys.")
+
+    # Extract `node_id` from the data_output_folder path
+    node_id = None
+    for part in Path(data_output_folder).parts:
+        if part.startswith("node") and part[4:].isdigit():
+            node_id = part
+            logger.info(f"Node ID '{node_id}' was found in the path.")
+            break
+
+    if not node_id:
+        logger.error("❌ Node ID could not be determined from the data output folder path.")
+        raise ValueError("The data output folder path must contain a node identifier like 'node1', 'node2', etc.")
+
+    # Define the expected file name pattern and its location in the parent directory
+    parent_dir = Path(data_output_folder).parent
+    unique_keys_file = parent_dir / f"{node_id}_unique_keys.csv"
+
+    try:
+        logger.info(f"Looking for the file '{unique_keys_file}'.")
+
+        with unique_keys_file.open("r") as f:
+            all_unique_keys = set(
+                line.strip() for line in f if line.strip()
+            )  # Use a set for fast lookup
+        
+        logger.info(
+            f"📂 The file '{unique_keys_file}' was found. Total unique keys loaded: {len(all_unique_keys)}."
+        )
+        return all_unique_keys
+
+    except FileNotFoundError:
+        logger.error(
+            f"❌ The file '{unique_keys_file}' for tracking unique tweets was not found. Stopping the workflow."
+        )
+        raise FileNotFoundError(
+            f"The file '{unique_keys_file}' is required but was not found. Please ensure it exists in the parent directory of the output folder."
+        )
+
+
 #######################################################################################################  
 @flow
 def update_web_content_flow():

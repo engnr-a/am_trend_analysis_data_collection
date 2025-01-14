@@ -29,12 +29,13 @@ from am_social_media_analytics.data_collection.common_utils.general_utils import
     calculate_scraping_time,
     set_browser_zoom,
     update_search_query_and_send_email,
-    get_latest_article_with_key
+    get_latest_article_with_key,
+    load_unique_keys
 )
 
 
 @task
-def extract_articles_from_page(url: str, search_query: str, max_hours: int, port:int):
+def extract_articles_from_page(url: str, search_query: str, max_hours: int, port:int, data_folder:str):
     """
     Extracts <article> elements from a webpage, scrolling incrementally and storing
     unique content in a set. Outputs the results to a CSV file when at least 20
@@ -56,9 +57,14 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
 
     # Infer data output folder and base folder..to ensure generality
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    # data_output_folder = os.path.join(
+    #     os.path.abspath(os.path.join(script_dir, "../../../../")),
+    #     "data/keyphrase_search_results_raw/by_date",
+    # )
+    
     data_output_folder = os.path.join(
         os.path.abspath(os.path.join(script_dir, "../../../../")),
-        "data/keyphrase_search_results_raw/by_date",
+        data_folder,
     )
     logger.info(f"📂 Data output folder inferred as : {data_output_folder}")
 
@@ -166,22 +172,23 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
             set()
         )  
         # The csv file containing all tweets collected so far as identified by generated unique keys
-        unique_keys_file = os.path.join(script_dir, "unique_keys.csv")
-        try:
-            with open(unique_keys_file, "r") as f:
-                all_unique_keys = set(
-                    line.strip() for line in f if line.strip()
-                )  # Use a set for fast lookup
-            logger.info(
-                f"📂 The file '{unique_keys_file}' was found. Total unique keys loaded: {len(all_unique_keys)}."
-            )
-        except FileNotFoundError:
-            logger.error(
-                f"❌ The file '{unique_keys_file}' for tracking unique tweets was not found. Stopping the workflow."
-            )
-            raise FileNotFoundError(
-                f"The file '{unique_keys_file}' is required but was not found. Please ensure it exists in the same directory."
-            )
+        #unique_keys_file = os.path.join(data_output_folder, "unique_keys.csv")
+        all_unique_keys = load_unique_keys(data_output_folder)
+        # try:
+        #     with open(unique_keys_file, "r") as f:
+        #         all_unique_keys = set(
+        #             line.strip() for line in f if line.strip()
+        #         )  # Use a set for fast lookup
+        #     logger.info(
+        #         f"📂 The file '{unique_keys_file}' was found. Total unique keys loaded: {len(all_unique_keys)}."
+        #     )
+        # except FileNotFoundError:
+        #     logger.error(
+        #         f"❌ The file '{unique_keys_file}' for tracking unique tweets was not found. Stopping the workflow."
+        #     )
+        #     raise FileNotFoundError(
+        #         f"The file '{unique_keys_file}' is required but was not found. Please ensure it exists in the same directory."
+        #     )
 
         ##################################################################################################################
         # NOTE:####### MAIN BLOCK ###########################################################################################
@@ -532,12 +539,13 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
 
 @flow
 def article_extraction_flow(
-    url: str, data_folder: str, days_back: int, max_run_time: int, browser_port:int
+    url: str, data_folder: str, days_back: int, max_run_time: int, browser_port:int, node_id:str
 ):
     """
     Flow to extract articles from a webpage after login.
     """
     logger = get_run_logger()
+    logger.info(f"🚅 Browser will be connected to at the port {browser_port}")
     # data_folder = "data/keyphrase_search_results_raw/by_date/03_2024"
     # days_back = 10
     # in the form  "additive manufacturing" or "3d printer" or "3d printed" or "3d printing" or "3d print" until:2024-03-04 since:2024-02-23 -filter:replies
@@ -555,17 +563,18 @@ def article_extraction_flow(
         to_email_addresses,
         flow_name,
         parameters,
-        {"tweet_search_query": search_query},
+        {"tweet_search_query": search_query,
+         "running_node":node},
     )
-    logger.info(f"🚅 Browser will be connected to at the port {browser_port}")
-    extract_articles_from_page(url, search_query, max_run_time, browser_port)
+    extract_articles_from_page(url, search_query, max_run_time, browser_port, data_folder)
     # Send email for flow end
     send_flow_info_by_email(
         "ended",
         to_email_addresses,
         flow_name,
         parameters,
-        {"tweet_search_query": search_query},
+        {"tweet_search_query": search_query,
+         "running_node":node},
     )
 
 

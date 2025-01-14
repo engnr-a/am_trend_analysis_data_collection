@@ -30,7 +30,7 @@ def get_latest_date(data_folder):
     
     data_folder = os.path.join(
         os.path.abspath(os.path.join(script_dir, "../../../../")),  # Go back three levels
-        data_folder # Concatenate the relative path
+        data_folder 
     )
 
     try:
