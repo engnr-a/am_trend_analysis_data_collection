@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from pathlib import Path
 import time
 import csv
 from prefect import flow, task, get_run_logger
@@ -144,7 +145,7 @@ def update_search_query_and_send_email(driver: webdriver, tweet_key: str):
         logger.error(f"❌ Error interacting with the search input field: {e}", exc_info=True)
 
 
-
+@task
 def load_unique_keys(data_output_folder):
     """
     Load unique keys from a CSV file named with the pattern `<node_id>_unique_keys.csv`.
@@ -160,7 +161,7 @@ def load_unique_keys(data_output_folder):
     Raises:
         FileNotFoundError: If the file is not found.
     """
-    logger = logging.getLogger(__name__)
+    logger = get_run_logger()
     logger.info("Starting to load unique keys.")
 
     # Extract `node_id` from the data_output_folder path
@@ -190,7 +191,7 @@ def load_unique_keys(data_output_folder):
         logger.info(
             f"📂 The file '{unique_keys_file}' was found. Total unique keys loaded: {len(all_unique_keys)}."
         )
-        return all_unique_keys
+        return unique_keys_file, all_unique_keys
 
     except FileNotFoundError:
         logger.error(

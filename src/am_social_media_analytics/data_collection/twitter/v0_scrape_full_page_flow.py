@@ -57,11 +57,6 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
 
     # Infer data output folder and base folder..to ensure generality
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    # data_output_folder = os.path.join(
-    #     os.path.abspath(os.path.join(script_dir, "../../../../")),
-    #     "data/keyphrase_search_results_raw/by_date",
-    # )
-    
     data_output_folder = os.path.join(
         os.path.abspath(os.path.join(script_dir, "../../../../")),
         data_folder,
@@ -166,30 +161,12 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
         ##################  BLOCK 4: Set up tracking of uniquness of tweets ###############################################
         ###################################################################################################################
         # The "new_unique_keys" will store only the new unique keys to preventing.  the need to overwrite entire unique keys all the time
-        
-        
         new_unique_keys = (
             set()
         )  
         # The csv file containing all tweets collected so far as identified by generated unique keys
-        #unique_keys_file = os.path.join(data_output_folder, "unique_keys.csv")
-        all_unique_keys = load_unique_keys(data_output_folder)
-        # try:
-        #     with open(unique_keys_file, "r") as f:
-        #         all_unique_keys = set(
-        #             line.strip() for line in f if line.strip()
-        #         )  # Use a set for fast lookup
-        #     logger.info(
-        #         f"📂 The file '{unique_keys_file}' was found. Total unique keys loaded: {len(all_unique_keys)}."
-        #     )
-        # except FileNotFoundError:
-        #     logger.error(
-        #         f"❌ The file '{unique_keys_file}' for tracking unique tweets was not found. Stopping the workflow."
-        #     )
-        #     raise FileNotFoundError(
-        #         f"The file '{unique_keys_file}' is required but was not found. Please ensure it exists in the same directory."
-        #     )
-
+        #all_unique_keys = load_unique_keys(data_output_folder)
+        unique_keys_file, all_unique_keys = load_unique_keys(data_output_folder)
         ##################################################################################################################
         # NOTE:####### MAIN BLOCK ###########################################################################################
         ##################################################################################################################
@@ -264,9 +241,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
                     update_search_query_and_send_email(browser, unique_key)
                     
 
-            ##--> STEP 3: Loop through all found articles
-            #              - Extract necessery metadata and actual tweets
-            #              - add it to the
+            ##--> STEP 3: Loop through all found articles: Extract necessery metadata and actual tweets, add it to the
             for article in articles:
                 try:
                     ##--> STEP 3.1: Extract the author name
@@ -317,8 +292,6 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
                     ## STEP 5: Extract the post engagement data
                     # Initialize engagement counts
                     replies, reshares, likes, views, bookmarks = 0, 0, 0, 0, 0
-###################################################################################################################################################
-#############################################################################################################################################################
                     try:
                         # Combine keywords into one XPath query
                         keywords = ["reply", "reposts", "likes", "bookmarks", "views"]
@@ -351,10 +324,6 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
 
                     except Exception as e:
                         logger.warning(f"❌ Error extracting engagement data: {e}")
-#############################################################################################################################################################
-
-############################################################################################################################################################
-
                     ## STEP 6:
                     # Pre create a row of data that corresponds to all necessary data about the post/tweet
                     article_data = (
@@ -564,7 +533,7 @@ def article_extraction_flow(
         flow_name,
         parameters,
         {"tweet_search_query": search_query,
-         "running_node":node},
+         "node_id":node_id},
     )
     extract_articles_from_page(url, search_query, max_run_time, browser_port, data_folder)
     # Send email for flow end
@@ -574,7 +543,7 @@ def article_extraction_flow(
         flow_name,
         parameters,
         {"tweet_search_query": search_query,
-         "running_node":node},
+         "node_id":node_id},
     )
 
 

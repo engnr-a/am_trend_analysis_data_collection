@@ -1,7 +1,3 @@
-# Welcome to your prefect.yaml file! You can use this file for storing and managing
-# configuration for deploying your flows. We recommend committing this file to source
-# control along with your flow code.
-
 # Generic metadata about this project
 name: am_social_media_analytics
 prefect-version: 3.1.9
@@ -28,74 +24,50 @@ pull:
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
-
-- name: get_tweets_n1
+- name: get_tweets_node1 #node specific config
   version: null
-  tags: [tweets_by_dated_search_query]
+  tags: [node1] #node specific config
   concurrency_limit: null
   description: Flow to scrape tweets by a search query that contained automatically generated dates based on previous scarpping
   entrypoint: src.am_social_media_analytics.data_collection.twitter.v0_scrape_full_page_flow:article_extraction_flow
   parameters: 
     url: "https://x.com/"
-    data_folder: "data/keyphrase_search_results_raw/by_date"
+    data_folder: "data/keyphrase_search_results_raw_data/node1/2022" #node specific config
     days_back: 10
-    max_run_time: 2
-    browser_port: 9222
+    max_run_time: 3
+    browser_port: 7222 #node specific config
+    node_id: "node1" #node specific config
   work_pool:
     name: mypc
     work_queue_name: null
     job_variables: {}
   enforce_parameter_schema: true
   schedules:
-  - interval: 10800.0 
-    anchor_date: '2025-01-01T00:00:00+00:00'  
-    timezone: UTC
+  - interval: 14400.0  # 
+    anchor_date: '2025-01-01T00:00:00+00:00' 
+    timezone: Europe/Budapest
     active: false
 
-
-- name: get_tweets_node1
+- name: get_tweets_node2 #node specific config
   version: null
-  tags: [tweets_by_search_query_n1]
+  tags: [node2] #node specific config
   concurrency_limit: null
   description: Flow to scrape tweets by a search query that contained automatically generated dates based on previous scarpping
   entrypoint: src.am_social_media_analytics.data_collection.twitter.v0_scrape_full_page_flow:article_extraction_flow
   parameters: 
     url: "https://x.com/"
-    data_folder: "data/keyphrase_search_results_raw/by_date/node1/2022"
+    data_folder: "data/keyphrase_search_results_raw_data/node1/2022" #node specific config
     days_back: 10
-    max_run_time: 2
-    browser_port: 8222
-    node_id: ""
+    max_run_time: 3
+    browser_port: 8222 #node specific config
+    node_id: "node2" #node specific config
   work_pool:
     name: mypc
     work_queue_name: null
     job_variables: {}
   enforce_parameter_schema: true
   schedules:
-  - interval: 10800.0  # 
+  - interval: 14400.0  # 
     anchor_date: '2025-01-01T00:00:00+00:00' 
-    timezone: UTC
-    active: false
-
-- name: get_tweets_node2
-  version: null
-  tags: [tweets_by_search_query_n2]
-  concurrency_limit: null
-  description: Flow to scrape tweets by a search query that contained automatically generated dates based on previous scarpping
-  entrypoint: src.am_social_media_analytics.data_collection.twitter.v0_scrape_full_page_flow:article_extraction_flow
-  parameters: 
-    url: "https://x.com/"
-    data_folder: "data/keyphrase_search_results_raw/by_date/node2"
-    days_back: 10
-    max_run_time: 2
-    browser_port: 8222
-  work_pool:
-    name: mypc
-    work_queue_name: null
-    job_variables: {}
-  enforce_parameter_schema: true
-  schedules:
-  - interval: 10800.0  # 
-    anchor_date: '2025-01-01T00:00:00+00:00' 
-    timezone: UTC
+    timezone: Europe/Budapest
     active: false

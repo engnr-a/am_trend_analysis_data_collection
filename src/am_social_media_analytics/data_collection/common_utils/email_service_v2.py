@@ -14,6 +14,8 @@ def send_flow_info_by_email(email_type, to_email_addresses, flow_name, parameter
 
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
+        node_id = additional_data.get("node_id", "UNKNOWN").upper()
+        
         # Determine the actual message content based on email_type
         if email_type == "start":
             action = "has started"
@@ -26,11 +28,9 @@ def send_flow_info_by_email(email_type, to_email_addresses, flow_name, parameter
             "node1": "1️⃣",
             "node2": "2️⃣",
             "node3": "3️⃣",
-            # Add more nodes as needed
         }
         
-        emoji = node_emojis.get(node_id.lower(), "❓")  # Default emoji if node_id not in the dictionary
-        
+        emoji = node_emojis.get(node_id.lower(), "❓")  
         #title_template = f"{node_id} Work Flow: {{flow_name}} {{action}}"
         
         title_template = f"{emoji} {node_id.upper()} Work Flow: {{flow_name}} {{action}}"
