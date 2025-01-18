@@ -320,7 +320,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
                                 views = int(view_match.group(1)) if view_match else 0
                                 bookmarks = int(bookmark_match.group(1)) if bookmark_match else 0
                         else:
-                            logger.info("0️⃣ No engagement HTML elements found.")
+                            logger.info("⛔ No engagement HTML elements found.")
 
                     except Exception as e:
                         logger.warning(f"❌ Error extracting engagement data: {e}")
