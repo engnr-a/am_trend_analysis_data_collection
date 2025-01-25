@@ -93,7 +93,7 @@ def reconstruct_search_query(tweet_key):
 
 
 @task(cache_policy=NONE)
-def update_search_query_and_send_email(driver: webdriver, tweet_key: str):
+def update_search_query_and_send_email(driver: webdriver, tweet_key: str,node_id):
     """
     Updates the search query dynamically based on the tweet key and sends an email notification.
     Args:
@@ -137,7 +137,7 @@ def update_search_query_and_send_email(driver: webdriver, tweet_key: str):
         
         # PART 3 SEND EMAIL NOTIFICATION
         email_list = ["sholasuleiman@outlook.com"]
-        future = send_search_query_update_email(email_list, tweet_key, search_query)
+        future = send_search_query_update_email(email_list, tweet_key, search_query, node_id)
         
         
         

@@ -97,16 +97,28 @@ def email_service_flow(email_type, to_email_addresses, additional_data):
 
 
 @task
-def send_search_query_update_email(email_list, tweet_key, search_query):
+def send_search_query_update_email(email_list, tweet_key, search_query, node_id):
     try:
+        
+        #node_id = additional_data.get("node_id", "UNKNOWN").upper()
+
+        node_emojis = {
+            "node1": "1️⃣",
+            "node2": "2️⃣",
+            "node3": "3️⃣",
+        }
+        emoji = node_emojis.get(node_id.lower(), "❓")  
+        
+        
         logger = get_run_logger()
 
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Construct the subject and message content
-        subject = "[PART 2] Search Query Update Notification"
+        subject = f"{emoji} {node_id} -⚠️ ⚠️ Search Query Update Notification"
         message = (
             f"<p>Hello,</p>"
+            f"<p>This email is sent from the {emoji} <b>{node_id}</b> node.</p>"
             f"<p>As of {current_time}, a condition that warrants the change of the search query has been encountered.</p>"
             f"<p>The following Unique Tweet Key: <b>{tweet_key}</b> has been repeatedly encountered multiple times.</p>"
             f"<p>Hence, the <b>until</b> date part of the search query will be moved downward by 1 day.</p>"

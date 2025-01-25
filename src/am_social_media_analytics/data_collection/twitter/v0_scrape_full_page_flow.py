@@ -35,7 +35,7 @@ from am_social_media_analytics.data_collection.common_utils.general_utils import
 
 
 @task
-def extract_articles_from_page(url: str, search_query: str, max_hours: int, port:int, data_folder:str):
+def extract_articles_from_page(url: str, search_query: str, max_hours: int, port:int, data_folder:str, node_id):
     """
     Extracts <article> elements from a webpage, scrolling incrementally and storing
     unique content in a set. Outputs the results to a CSV file when at least 20
@@ -203,6 +203,8 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
                 logger.info(
                     f"✅ Appended {len(new_unique_keys)} new unique keys to '{unique_keys_file}'."
                 )
+                
+                logger.info(f"Total tweets processed : {total_written}")
                 break
             else:
                 # Log the time remaining
@@ -238,7 +240,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
                         logger.info(f"🔑 Generated unique key for the latest article: {unique_key}")
                     else:
                         logger.warning("⚠️ No latest article available to generate a unique key.")
-                    update_search_query_and_send_email(browser, unique_key)
+                    update_search_query_and_send_email(browser, unique_key, node_id)
                     
 
             ##--> STEP 3: Loop through all found articles: Extract necessery metadata and actual tweets, add it to the
@@ -535,7 +537,7 @@ def article_extraction_flow(
         {"tweet_search_query": search_query,
          "node_id":node_id},
     )
-    extract_articles_from_page(url, search_query, max_run_time, browser_port, data_folder)
+    extract_articles_from_page(url, search_query, max_run_time, browser_port, data_folder, node_id)
     # Send email for flow end
     send_flow_info_by_email(
         "ended",
