@@ -374,7 +374,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
                         problematic_tweet_keys.append(tweet_unique_key)
                         
             if problematic_tweet_keys:
-                update_search_query_and_send_email(browser, problematic_tweet_keys[0])
+                update_search_query_and_send_email(browser, problematic_tweet_keys[0], node_id)
                 problematic_tweet_keys.clear()
                 #unique_key_counter.clear()  
 
