@@ -82,7 +82,7 @@ def reconstruct_search_query(tweet_key):
     date_str = tweet_key.split('_')[0]  # Extract the date part
     tweet_date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.000Z")
 
-    until_date = (tweet_date - timedelta(days=1)).strftime("%Y-%m-%d")
+    until_date = (tweet_date - timedelta(days=0)).strftime("%Y-%m-%d")
     since_date = (tweet_date - timedelta(days=6)).strftime("%Y-%m-%d")
 
     search_query = (
