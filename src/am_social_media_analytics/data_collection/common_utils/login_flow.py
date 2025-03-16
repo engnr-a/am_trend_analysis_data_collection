@@ -18,10 +18,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.webdriver import WebDriver   
 
+@task
 def initialize_browser_with_existing_session(port: int) -> WebDriver:
     """
     Initializes a WebDriver instance that connects to an existing Chrome session.
     """
+    logger = get_run_logger()
     chrome_options = Options()
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0")
     chrome_options.add_argument("--no-sandbox")
@@ -32,9 +34,17 @@ def initialize_browser_with_existing_session(port: int) -> WebDriver:
     chrome_options.add_experimental_option("debuggerAddress", f"127.0.0.1:{port}")
     chrome_options.add_argument(f"--remote-debugging-port={port}")
     
-    print(ChromeDriverManager().install())
-    # Initialize WebDriver using the existing session
+    # print(ChromeDriverManager().install())
+    # # Initialize WebDriver using the existing session
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    
+    # driver_dir = ChromeDriverManager().install()
+
+    
+    # driver_path = "/home/shola/.wdm/drivers/chromedriver/linux64/131.0.6778.264/chromedriver-linux64/chromedriver"
+    # logger.info(f"Using driver path:{driver_path}")
+
+    # driver = webdriver.Chrome(service=Service(driver_path), options=chrome_options)
     return driver
 
 
