@@ -2,7 +2,9 @@ import pandas as pd
 import glob
 from prefect import flow, task, get_run_logger
 from datetime import datetime, timedelta
-
+from am_social_media_analytics.data_collection.common_utils.email_service_v2 import (
+    send_flow_info_by_email, send_search_window_summary_email
+)
 import os
 
 #NOTE: Term explanation:
@@ -54,7 +56,8 @@ def get_latest_date(data_folder):
         formatted_date = earliest_date.strftime("%Y-%m-%d")
         logger.info(f"✅ Earliest date found: {formatted_date}")
 
-        return formatted_date
+        #return formatted_date
+        return earliest_date
 
     except Exception as e:
         logger.error(f"❌ An error occurred: {e}", exc_info=True)
@@ -81,7 +84,8 @@ def create_query_string(data_folder, days_back):
 
     # STEP 2: Convert earliest run to datetime object
     try:
-        earliest_date = datetime.strptime(earliest_run, "%Y-%m-%d")
+        #earliest_date = datetime.strptime(earliest_run, "%Y-%m-%d")
+        earliest_date = earliest_run if isinstance(earliest_run, datetime) else datetime.strptime(earliest_run, "%Y-%m-%d")
     except ValueError as e:
         logger.error(f"❌ Invalid date format for earliest run: {earliest_run}")
         logger.error(e)
@@ -93,9 +97,24 @@ def create_query_string(data_folder, days_back):
     # STEP 4: Format dates for the query string
     until_date_str = earliest_date.strftime("%Y-%m-%d")
     # STEP 4.1: Modify the "until" date by adding 2 day....this is to handle lags
-    until_date_modified = earliest_date + timedelta(days=1)
+
+    # until_date_modified = earliest_date + timedelta(days=1)
+    # until_date_modified = until_date_modified.strftime("%Y-%m-%d")
+    #########################################################################################
+    send_summary_email = False
+    if earliest_date.time() >= datetime.strptime("18:00:00", "%H:%M:%S").time():
+        until_date_modified = earliest_date + timedelta(days=1)
+        logger.info(f"🕕Earlierst date {earliest_date} NOT within last 6 hours of the day.")
+        logger.info("🌅 NOTE: Lags WON'T be considered")
+        #-
+    else:
+        logger.info(f"🕕 Earliest datetime {earliest_date} IS within the last 6 hours of the day")
+        logger.info("🌅 NOTE: Lags WILL be considered")
+        until_date_modified = earliest_date
+        send_summary_email = True  # Flag to send summary email
+        
     until_date_modified = until_date_modified.strftime("%Y-%m-%d")
-    
+    #########################################################################################
     since_date_str = since_date.strftime("%Y-%m-%d")
     
     
@@ -113,6 +132,15 @@ def create_query_string(data_folder, days_back):
     )
 
     logger.info(f"🔍 Generated search query: {search_query}")
+    
+    if send_summary_email:
+        send_search_window_summary_email.submit(
+            email_list=["sholasuleiman1@gmail.com"],
+            node_id="node1",
+            since_date=since_date_str,
+            until_date=until_date_modified,
+            query="(query will be shown below)"
+        )
     return search_query
 
 

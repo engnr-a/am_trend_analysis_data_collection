@@ -157,7 +157,64 @@ def send_search_query_update_email(email_list, tweet_key, search_query, node_id)
     except Exception as e:
         logger.error(f"❌ Error sending email: {e}", exc_info=True)
         raise
-    
+
+
+@task
+def send_search_window_summary_email(email_list, node_id, since_date, until_date, query):
+    try:
+        logger = get_run_logger()
+
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        node_emojis = {
+            "node1": "1️⃣",
+            "node2": "2️⃣",
+            "node3": "3️⃣",
+        }
+        emoji = node_emojis.get(node_id.lower(), "❓")
+
+        subject = f"{emoji} {node_id} - 🗓️ Twitter Search Window Summary"
+
+        message = (
+            f"<p>Hello,</p>"
+            f"<p>This is an automated summary from node <b>{emoji} {node_id}</b>.</p>"
+            f"<p><b>Execution Time</b>: {current_time}</p>"
+            f"<p><b>Search window:</b></p>"
+            f"<ul>"
+            f"<li><b>Since date</b>: {since_date}</li>"
+            f"<li><b>Until date</b>: {until_date}</li>"
+            f"</ul>"
+            f"<p><b>Search Query Used:</b></p>"
+            f"<p><code>{query}</code></p>"
+            f"<p>Best regards,</p>"
+            f"<p>Shola Suleiman</p>"
+        )
+
+        email_msg = EmailMessage()
+        email_msg["From"] = "abubakar.suleiman@tuhh.de"
+        email_msg["Subject"] = subject
+        email_msg.set_content(message, subtype='html')
+
+        email_server_credentials = EmailServerCredentials.load("emailcredentials")
+
+        for email_address in email_list:
+            email_msg["To"] = email_address
+
+            future = email_send_message.with_options(name=f"search_summary_{email_address}").submit(
+                email_server_credentials=email_server_credentials,
+                subject=subject,
+                msg=email_msg.get_content(),
+                email_to=email_address,
+                email_from=email_msg["From"]
+            )
+            future.result()
+
+        logger.info("✅ Search window summary email sent to all recipients.")
+
+    except Exception as e:
+        logger.error(f"❌ Error sending summary email: {e}", exc_info=True)
+        raise
+ 
 @flow
 def test():
     email_list = ["sholasuleiman1@gmail.com"]
