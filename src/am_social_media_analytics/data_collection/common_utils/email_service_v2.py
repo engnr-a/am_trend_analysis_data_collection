@@ -173,13 +173,14 @@ def send_search_window_summary_email(email_list, node_id, since_date, until_date
         }
         emoji = node_emojis.get(node_id.lower(), "❓")
 
-        subject = f"{emoji} {node_id} - 🗓️ Twitter Search Window Summary"
+        subject = f"{emoji} {node_id} - 🗓️ Query Lag Handling Info"
 
         message = (
             f"<p>Hello,</p>"
             f"<p>This is an automated summary from node <b>{emoji} {node_id}</b>.</p>"
             f"<p><b>Execution Time</b>: {current_time}</p>"
             f"<p><b>Search window:</b></p>"
+            f"<p>THE LAST RUN FALLS WITHIN THE LAST 4 HOURS OF THE DAY..HENCE, LAG IS IGNOREED</p>"
             f"<ul>"
             f"<li><b>Since date</b>: {since_date}</li>"
             f"<li><b>Until date</b>: {until_date}</li>"

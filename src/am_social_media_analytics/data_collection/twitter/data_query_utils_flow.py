@@ -102,14 +102,14 @@ def create_query_string(data_folder, days_back):
     # until_date_modified = until_date_modified.strftime("%Y-%m-%d")
     #########################################################################################
     send_summary_email = False
-    if earliest_date.time() >= datetime.strptime("18:00:00", "%H:%M:%S").time():
+    if earliest_date.time() >= datetime.strptime("04:00:00", "%H:%M:%S").time():
         until_date_modified = earliest_date + timedelta(days=1)
-        logger.info(f"🕕Earlierst date {earliest_date} NOT within last 6 hours of the day.")
-        logger.info("🌅 NOTE: Lags WON'T be considered")
+        logger.info(f"🕕Earlierst date {earliest_date} NOT within last 4 hours of the day.")
+        logger.info("🌅 NOTE: Lags WILL be considered")
         #-
     else:
         logger.info(f"🕕 Earliest datetime {earliest_date} IS within the last 6 hours of the day")
-        logger.info("🌅 NOTE: Lags WILL be considered")
+        logger.info("🌅 NOTE: Lags WILL NOT be considered")
         until_date_modified = earliest_date
         send_summary_email = True  # Flag to send summary email
         
