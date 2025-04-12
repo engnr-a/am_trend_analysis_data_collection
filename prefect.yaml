@@ -74,6 +74,9 @@ deployments:
 
 
 - name: get_tweets_node4 #node specific config
+  pull:
+    - prefect.deployments.steps.set_working_directory:
+        directory: /home/shola/NODE4/apart2-am-sma/
   version: null
   tags: [node2] #node specific config
   concurrency_limit: null
