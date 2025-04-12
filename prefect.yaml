@@ -71,3 +71,27 @@ deployments:
     anchor_date: '2025-01-01T00:00:00+00:00' 
     timezone: Europe/Budapest
     active: false
+
+
+- name: get_tweets_node4 #node specific config
+  version: null
+  tags: [node2] #node specific config
+  concurrency_limit: null
+  description: Flow to scrape tweets by a search query that contained automatically generated dates based on previous scarpping
+  entrypoint: src.am_social_media_analytics.data_collection.twitter.v0_scrape_full_page_flow:article_extraction_flow
+  parameters: 
+    url: "https://x.com/"
+    data_folder: "data/keyphrase_search_results_raw_data/node4/2012" #node specific config
+    days_back: 10
+    max_run_time: 3
+    browser_port: 5222 #node specific config
+    node_id: "node1" #node specific config
+  work_pool:
+    name: mypc
+    work_queue_name: null
+    job_variables: {}
+  enforce_parameter_schema: true
+  schedules:
+  - interval: 14400.0  # 
+    anchor_date: '2025-01-01T00:00:00+00:00' 
+    timezone: Europe/Budapest
