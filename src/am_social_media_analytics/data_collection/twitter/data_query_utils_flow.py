@@ -135,7 +135,7 @@ def create_query_string(data_folder, days_back):
     
     if send_summary_email:
         send_search_window_summary_email.submit(
-            email_list=["sholasuleiman1@gmail.com"],
+            email_list=["sholasuleiman@outlook.com"],
             node_id="node1",
             since_date=since_date_str,
             until_date=until_date_modified,
