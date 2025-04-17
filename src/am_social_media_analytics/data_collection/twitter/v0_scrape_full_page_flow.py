@@ -14,6 +14,7 @@ from selenium.webdriver.common.keys import Keys
 from prefect import task, flow
 from prefect.logging import get_run_logger
 from prefect.context import FlowRunContext, TaskRunContext
+from selenium.common.exceptions import NoSuchElementException
 
 from am_social_media_analytics.data_collection.common_utils.login_flow import (
     initialize_browser_with_existing_session,
@@ -24,6 +25,7 @@ from am_social_media_analytics.data_collection.twitter.data_query_utils_flow imp
 )
 from am_social_media_analytics.data_collection.common_utils.email_service_v2 import (
     send_flow_info_by_email,
+    send_flow_info_by_email,send_generic_email
 )
 from am_social_media_analytics.data_collection.common_utils.general_utils import (
     calculate_scraping_time,
@@ -219,12 +221,44 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
             if not articles:
                 retries = 0
                 max_retries = 5
+                new_elements_found = False
+                wait_seconds = 5
                 while retries < 5:
                     logger.warning(f"⚠️ No articles found. Retrying {retries + 1}/{max_retries}...")
 
                     # Scroll to load more articles
                     browser.execute_script("window.scrollBy(0, document.body.scrollHeight);")
-                    time.sleep(20)  # Wait for content to load
+                    time.sleep(10)  # Wait for content to load
+                    
+                    try:
+                        retry_button = browser.find_element(By.XPATH, "//button[.//span[text()='Retry']]")
+                        if retry_button:
+                            logger.info("🔁 'Retry' button found. Clicking it to reload content...")
+                            retry_button.click()
+                            time.sleep(10)  # Give the page a moment to reload content
+                            new_articles = browser.find_elements(By.XPATH, "//article")  # or adjust based on context
+                            if new_articles:
+                                new_elements_found = True
+                                logger.info(f"🆕 Found {len(new_articles)} new article elements after retry.")
+                                if new_elements_found:
+                                    subject = f"🟢 Retry Successful - New Data Loaded After Clicking on Retry"
+                                    content = (
+                                        f"<p>Hello,</p>"
+                                        f"<p>After encountering a breaking point at tweet key <b>{tweet_unique_key}</b>, "
+                                        f"a retry action was triggered.</p>"
+                                        f"<p>New article elements were successfully loaded.</p>"
+                                        f"<p>Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
+                                        f"<p>Best regards,<br>Shola Suleiman</p>"
+                                    )
+                                    send_generic_email.submit(["sholasuleiman@outlook.com"], subject, content)
+                        else:
+                            logger.info("ℹ️ 'Retry' button not found.")
+                    except NoSuchElementException:
+                            logger.info("🔍 'Retry' button not present on the page.")
+                    except Exception as e:
+                            logger.warning(f"⚠️ Failed to interact with the 'Retry' button: {e}")
+                    ############################################################
+
 
                     # Find articles again
                     articles_after_retry = browser.find_elements(By.XPATH, '//div[contains(@class, "css-175oi2r")]/article')
@@ -242,7 +276,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
                         logger.warning("⚠️ No latest article available to generate a unique key.")
                     update_search_query_and_send_email(browser, unique_key, node_id)
                     
-
+            should_break_article_loop = False
             ##--> STEP 3: Loop through all found articles: Extract necessery metadata and actual tweets, add it to the
             for article in articles:
                 try:
@@ -365,17 +399,61 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
                     logger.info(f"✋ Tweet with unique key: {tweet_unique_key} is already processed. Occurrence count: {occurrence_count}.")   
                     logger.info(f"🆔 Tweet engagements: Replies: {replies}, Reshares: {reshares}, Likes: {likes}, Views: {views}")
 
+                    new_elements_found = False
                     # Check if the tweet has been repeatedly tried to be processed for more than 5 times
-                    if occurrence_count > 50:
+                    if occurrence_count > 10:
                         logger.warning(
                             f"⚠️ Detected the end of the page or breaking point tweet. Tweet {tweet_unique_key} has been repeated {occurrence_count} times."
                         )
                         #update_search_query_and_send_email(browser, tweet_unique_key)
-                        problematic_tweet_keys.append(tweet_unique_key)
+                        #problematic_tweet_keys.append(tweet_unique_key)
+                        try:
+                        # Try to find the Retry button
+                            #retry_button = browser.find_element(By.XPATH, "//button[.//span[text()='Retry']]")
+                            retry_button = browser.find_element(By.XPATH, "//button[.//span[text()='Retry']]")
+                            for i in range(20):
+                                time.sleep(8)
+                                retry_button.click()
+                                logger.info(f"🔂 Clicked Retry button attempt {i + 1}")
+                                time.sleep(8)
+
+                                new_articles = browser.find_elements(By.XPATH, "//article")
+                                if new_articles:
+                                    new_elements_found = True
+                                    logger.info(f"🆕 Found {len(new_articles)} new article elements after click {i + 1}.")
+                                    articles_after_retry = browser.find_elements(By.XPATH, '//div[contains(@class, "css-175oi2r")]/article')
+                                    articles = articles_after_retry 
+                                    #should_break_article_loop = True
+                                    logger.info(f"✅✅ New articles found after retry {i + 1}.")
+                                    break
+                                    
+                        except NoSuchElementException:
+                            logger.info("🔍 'Retry' button not present on the page.")
+                        except Exception as e:
+                            logger.warning(f"⚠️ Failed to interact with the 'Retry' button: {e}")
+                            
+                        # new_articles = browser.find_elements(By.XPATH, "//article")  # or adjust based on context
+                        if new_elements_found:
+                            logger.info("✅ Hurray 🥳 Retyr successful Preparing to send success email after retry.")
+                            problematic_tweet_keys.clear()
+                            subject = f"🟢 {node_id}: Retry Successful - New Data Loaded After Retry"
+                            content = (
+                                f"<p>Hello,</p>"
+                                f"<p>After encountering a breaking point at tweet key <b>{tweet_unique_key}</b>, "
+                                f"a retry action was triggered.</p>"
+                                f"<p>New article elements were successfully loaded.</p>"
+                                f"<p>Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
+                                f"<p>Best regards,<br>Shola Suleiman</p>"
+                            )
+                            send_generic_email.submit(["sholasuleiman@outlook.com"], subject, content)
+                            break
+                        else:
+                            problematic_tweet_keys.append(tweet_unique_key)
                         
             if problematic_tweet_keys:
-                update_search_query_and_send_email(browser, problematic_tweet_keys[0], node_id)
-                problematic_tweet_keys.clear()
+                if new_elements_found == False:
+                    update_search_query_and_send_email(browser, problematic_tweet_keys[0], node_id)
+                    problematic_tweet_keys.clear()
                 #unique_key_counter.clear()  
 
             ######
