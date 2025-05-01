@@ -35,7 +35,16 @@ from am_social_media_analytics.data_collection.common_utils.general_utils import
     load_unique_keys
 )
 
-
+def open_new_tab_and_navigate_to_twitter(browser):
+    """
+    Opens a new tab in the given browser and navigates to twitter.com.
+    
+    Args:
+        browser (webdriver): The current Selenium browser instance.
+    """
+    browser.execute_script("window.open('https://twitter.com', '_blank');")
+    browser.switch_to.window(browser.window_handles[-1])
+    
 @task
 def extract_articles_from_page(url: str, search_query: str, max_hours: int, port:int, data_folder:str, node_id):
     """
@@ -81,16 +90,19 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
         ##########################################################################################################################
         ################## BLOCK 1: Check for authenticated session. Sign-in if there no authenticated session ##################
         ##########################################################################################################################
-        if "linkedin.com" in url:
-            logger.info("🔗 Detected LinkedIn. Proceeding with login...")
-            perform_login_task("https://www.linkedin.com/login", port)
-        elif "x.com" in url or "twitter.com" in url:
-            logger.info("🔗 Detected Twitter (X.com). Proceeding with login...")
-            perform_login_task("https://x.com/i/flow/login", port)
-        else:
-            logger.error(f"❌ Unsupported platform: {url}")
-            return
-        logger.info("✅ Authentication successful. Starting article extraction...")
+        # if "linkedin.com" in url:
+        #     logger.info("🔗 Detected LinkedIn. Proceeding with login...")
+        #     perform_login_task("https://www.linkedin.com/login", port)
+        # elif "x.com" in url or "twitter.com" in url:
+        #     logger.info("🔗 Detected Twitter (X.com). Proceeding with login...")
+        #     perform_login_task("https://x.com/i/flow/login", port)
+        # else:
+        #     logger.error(f"❌ Unsupported platform: {url}")
+        #     return
+        # logger.info("✅ Authentication successful. Starting article extraction...")
+        logger.info("🚀 Opening a fresh tab and navigating to Twitter...")
+        open_new_tab_and_navigate_to_twitter(browser)
+        #time.sleep(5)
         time.sleep(10)
         #######################################################################################################################
 
