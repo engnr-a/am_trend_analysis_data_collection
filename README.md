@@ -1,5 +1,5 @@
 # About This Repository
-This repository is part of one of the two main repositories created for the thesis titled:
+This repository is part of one of the two main repositories created for:
 
 **“Cross-Sectoral Trend Analysis in Additive Manufacturing: Deriving Insights into Business-Relevant Topics, Use Cases, and Technology Trends Through Data Mining.”**
 
