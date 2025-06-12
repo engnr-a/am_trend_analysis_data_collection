@@ -1,3 +1,13 @@
+# About This Repository
+This repository is part of one of the two main repositories created for the thesis titled:
+
+**“Cross-Sectoral Trend Analysis in Additive Manufacturing: Deriving Insights into Business-Relevant Topics, Use Cases, and Technology Trends Through Data Mining.”**
+
+It contains the Python-based implementation for the **data collection** pipeline, specifically focusing on social media scraping using Selenium and other automation tools. The accompanying repository handles complementary components of the overall data mining workflow.
+
+For questions or suggestions, please contact abubakar.suleiman@tuhh.de.
+
+
 ## Setting Up Selenium with Google Chrome in WSL
 
 Opting for WSL (Debian distribution) for this project stems from a preference for Linux, along with the author's comfort and experience with this environment. This choice naturally extends to using Selenium and Chrome within WSL for web scraping. Here's a concise guide to get to setting up Selenium and Chrome on WSL.

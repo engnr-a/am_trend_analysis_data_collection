@@ -143,6 +143,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
             )
 
         time.sleep(15)
+        # Click on the "Latest" tab
         try:
             # Find and click the "Latest" option
             latest_button = browser.find_element(By.XPATH, '//span[text()="Latest"]')
@@ -248,7 +249,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
                             logger.info("🔁 'Retry' button found. Clicking it to reload content...")
                             retry_button.click()
                             time.sleep(10)  # Give the page a moment to reload content
-                            new_articles = browser.find_elements(By.XPATH, "//article")  # or adjust based on context
+                            new_articles = browser.find_elements(By.XPATH, "//article")  # or adjust based on context...crucial
                             if new_articles:
                                 new_elements_found = True
                                 logger.info(f"🆕 Found {len(new_articles)} new article elements after retry.")
@@ -413,7 +414,7 @@ def extract_articles_from_page(url: str, search_query: str, max_hours: int, port
 
                     new_elements_found = False
                     # Check if the tweet has been repeatedly tried to be processed for more than 5 times
-                    if occurrence_count > 10:
+                    if occurrence_count > 50:
                         logger.warning(
                             f"⚠️ Detected the end of the page or breaking point tweet. Tweet {tweet_unique_key} has been repeated {occurrence_count} times."
                         )
